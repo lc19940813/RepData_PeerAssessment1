@@ -88,7 +88,7 @@ percent <- mean(is.na(actdata$steps))
 ```
 So there are `r total_missing_values` NAs, which only constitute a small proportion (`r percent`) of our data
 
-2. **Here, I imputed missing values by filling the mean value of that day
+2. **Here, I imputed missing values by filling the mean value of that day**
 
 ```{r}
 grouped_data_bydate <- cbind(grouped_data_bydate, group_indices(grouped_data_bydate))

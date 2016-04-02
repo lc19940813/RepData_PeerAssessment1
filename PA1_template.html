@@ -147,7 +147,7 @@ dev.off()</code></pre>
 percent &lt;- mean(is.na(actdata$steps))</code></pre>
 <p>So there are 2304 NAs, which only constitute a small proportion (0.1311475) of our data</p>
 <ol start="2" style="list-style-type: decimal">
-<li>**Here, I imputed missing values by filling the mean value of that day</li>
+<li><strong>Here, I imputed missing values by filling the mean value of that day</strong></li>
 </ol>
 <pre class="r"><code>grouped_data_bydate &lt;- cbind(grouped_data_bydate, group_indices(grouped_data_bydate))
 for(i in 1: length(grouped_data_bydate$steps)){
