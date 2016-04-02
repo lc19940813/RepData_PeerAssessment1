@@ -1,25 +1,160 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+Course Project 1 for Data Science Specialization
+=========================================================================
+
+##Loading and preprocessing the data   
+- **I will load the dplyr and lattice package for me to do all the explanatory analysis**
+```{r}
+library(lattice)
+library(knitr)
+library(dplyr)
+```
+
+```{r option, echo=FALSE}
+opts_chunk$set(results = "hide")
+``` 
+
+- **Set the working directory and unzip the downloaded data**  
+```{r loaddata}
+setwd("C://Users//LeoChaos//Desktop//Git//RepData_PeerAssessment1")
+unzip("activity.zip")
+actdata <- read.csv("activity.csv")
+actdata <- tbl_df(actdata) 
+```
+
+##What is mean total number of steps taken per day?  
+
+To tackle this problem, we can simply group our data and do the summary statistics.
+
+1. **grouping data**
+```{r}
+grouped_data_bydate <- group_by(actdata, date)
+```
+
+2. **Calculate the total number of steps per day**
+```{r}
+sum1 <- summarise(grouped_data_bydate, sum = sum(steps,na.rm = TRUE))
+res1 <- sum1$sum
+```
+
+3. **Draw the histogram and Calculate the mean and median of steps taken per day**
+```{r}
+hist(res1,col = "red",xlab = "Total number of steps", main = "Total number of steps taken per day" )
+dev.copy(png, "mean total number of steps taken per day.png")
+dev.off()
+step_mean <- mean(res1)
+step_median <- median(res1)
+```
+
+*We can see the mean and median steps taken by this volunteer is `r step_mean` and `r step_median`.* 
+
+##What is the average daily activity pattern?
+
+1. **First, we should group data again, but this time group by date.**  
+
+```{r}
+grouped_data_byinterval <- group_by(actdata, interval)
+```
+
+2. **Second, we calculate the average steps taken at different time interval.**
+```{r}
+sum2 <- summarise(grouped_data_byinterval, mean = mean(steps,na.rm = TRUE))
+res2 <- sum2$mean
+```
+
+3. **Next, we can draw a time series plot to see the average daily pattern**
+
+```{r}
+plot(x = sum2$interval, y = res2, type = "l", xlab = "", ylab = "")
+title(xlab = "Time interval", ylab = "Average steps taken", 
+      main = "Average steps taken in given time interval")
+dev.copy(png, "average number of steps taken across all days.png")
+dev.off()
+```
+
+4. **Ultimately, let's find his or her most active time**
+
+```{r}
+max_act_time <- sum2$interval[which.max(res2)]
+```
+
+*Hence, we can see that the volunteer's most active time is around 8:35*
+
+##Imputing missing values
+
+1. **We first find the total missing values in our data**
+```{r}
+total_missing_values <- sum(is.na(actdata$steps))
+percent <- mean(is.na(actdata$steps))
+```
+So there are `r total_missing_values` NAs, which only constitute a small proportion (`r percent`) of our data
+
+2. **Here, I imputed missing values by filling the mean value of that day
+
+```{r}
+grouped_data_bydate <- cbind(grouped_data_bydate, group_indices(grouped_data_bydate))
+for(i in 1: length(grouped_data_bydate$steps)){
+    if(is.na(grouped_data_bydate[i,1])){
+        grouped_data_bydate[i,1] <- res1[grouped_data_bydate[i,4]]
+    }
+}
+```
+
+3. **So now, we have our filled new dataset**
+
+```{r}
+newdata <- ungroup(grouped_data_bydate)
+```
+
+4. **Redo the steps in the first part, we can draw a histogram and compute the mean and median of our new data**
+
+```{r}
+sum3 <- summarise(newdata, sum = sum(steps,na.rm = TRUE))
+res3 <- sum1$sum
+hist(res3,col = "red",xlab = "Total number of steps", main = "Total number of steps taken per day" )
+dev.copy(png, "mean total number of steps taken per day(imputed).png")
+dev.off()
+steps_mean_imputed <- mean(res3)
+steps_median_imputed <- median(res3)
+```
+
+*Consequently, the mean and median value of total number of steps taken per day is still `r steps_mean_imputed` and `r steps_median_imputed`*
+
+#Are there differences in activity patterns between weekdays and weekends?
+
+1. First, we should determine whether a given date is weekday or not
+
+```{r}
+date <- newdata$date
+weekday <- weekdays(as.Date(date))
+state <- character()
+for (i in 1: length(weekday)){
+    ##Sorry about the Chinese format...
+    if(weekday[i] == "ÐÇÆÚÁù" | weekday[i] ==  "ÐÇÆÚÈÕ"){
+        state[i] <- "weekend"
+    }
+    else {
+        state[i] <- "weekday"
+    }
+}
+state <- as.factor(state)
+dat <- mutate(newdata, state = state)
+```
+
+2. Group new data by weekday or weekend and then compute the mean steps taken in weekday and weekend
+
+```{r}
+grouped_dat_byinterval <- group_by(dat, interval,state)
+sum4 <- summarise(grouped_dat_byinterval, mean = mean(steps))
+```
+
+3. Visualize the result by lattice plotting system.
+
+```{r}
+xyplot(mean ~ interval | state, sum4, type = "l",col = "blue",
+       xlab = "Time interval", ylab = "Average steps taken",
+       layout = c(1,2))
+dev.copy(png, "5-minute interval and the average number of steps taken across all weekday days or weekend days.png")
+dev.off()
+```
 
 
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
